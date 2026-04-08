@@ -270,6 +270,7 @@ let selected=[],dragging=false;
 let dropQueue=[],convBalls=[],targetSlots=[];
 let cleared=0,gameOver=false,staleTicks=0,lastStateKey='';
 let ballId=0,convRAF=null,lastConvTs=null,drainTimer=null,matchTimer=null;
+let cellSize=52;
 
 // ─── OVAL ─────────────────────────────────────────────────────────────────────
 function getOval(){
@@ -336,7 +337,8 @@ function buildBoard(){
   const grid=document.getElementById('board-grid');
   const wrap=document.getElementById('board-wrap');
   const availW=wrap.clientWidth-20;
-  const cell=Math.min(Math.floor(availW/CFG.cols), 52);
+  cellSize=Math.min(Math.floor(availW/CFG.cols), 52);
+  const cell=cellSize;
   grid.style.gridTemplateColumns=`repeat(${CFG.cols},${cell}px)`;
   grid.style.gridTemplateRows=`repeat(${CFG.rows},${cell}px)`;
   grid.innerHTML='';
@@ -403,12 +405,26 @@ function drawLinks(){
   if(selected.length<2)return;
   const color=board[selected[0].r][selected[0].c];if(!color)return;
   const pts=selected.map(s=>cellCenter(s.r,s.c)).filter(Boolean);if(pts.length<2)return;
+  const d='M'+pts.map(p=>`${p.x},${p.y}`).join('L');
+  const sw=Math.max(3,cellSize*0.13);
   const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-  path.setAttribute('d','M'+pts.map(p=>`${p.x},${p.y}`).join('L'));
-  path.setAttribute('stroke',COLORS[color]);path.setAttribute('stroke-width','5');
-  path.setAttribute('stroke-linecap','round');path.setAttribute('stroke-linejoin','round');
-  path.setAttribute('fill','none');path.setAttribute('opacity','0.85');
+  path.setAttribute('d',d);
+  path.setAttribute('stroke',COLORS[color]);
+  path.setAttribute('stroke-width',sw);
+  path.setAttribute('stroke-linecap','round');
+  path.setAttribute('stroke-linejoin','round');
+  path.setAttribute('fill','none');
+  path.setAttribute('opacity','0.85');
   svg.appendChild(path);
+  const glow=document.createElementNS('http://www.w3.org/2000/svg','path');
+  glow.setAttribute('d',d);
+  glow.setAttribute('stroke','#ffffff');
+  glow.setAttribute('stroke-width',sw*0.4);
+  glow.setAttribute('stroke-linecap','round');
+  glow.setAttribute('stroke-linejoin','round');
+  glow.setAttribute('fill','none');
+  glow.setAttribute('opacity','0.35');
+  svg.appendChild(glow);
 }
 
 // ─── COMMIT ───────────────────────────────────────────────────────────────────
